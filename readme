@@ -1,0 +1,7 @@
+Um das Projekt zu starten, benötigen Sie Python.
+Stellen Sie zudem sicher, dass pip funktioniert.
+Laden Sie mittels pip django herunter: 'pip install django'.
+Gehen Sie in das Terminal ihrer IDE und navigieren Sie in den Ordner 'flaechenberechnung'.
+Nun führen Sie folgenden Befehl aus, um den lokalen Server zu starten: 'python manage.py runserver'.
+Wenn der lokale Entwicklungsserver gestartet ist, navigieren Sie im Browser auf folgende URL: 'http://127.0.0.1:8000/flaechen/overview'.
+Auf der Seite können Sie die Flächenberechnung benutzen.

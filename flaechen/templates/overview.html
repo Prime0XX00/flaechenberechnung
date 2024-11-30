@@ -1,0 +1,435 @@
+{% load static %}
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Flächenberechnung</title>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+</head>
+<body>
+
+    <div style="width: fit-content; border-radius: 10px; padding: 10px; border: 2px solid black;">
+
+
+        <div style="display: flex; flex-direction: row;">
+            <div style="flex-direction: column;">
+
+                <!-- Form auswählen -->
+                <label for="form">Form auswählen:</label>
+                <div class="radioGroup" id="form">
+                    <label for="form_rechteck">Rechteck</label>
+                    <input type="checkbox" class="form" value="0" choice="rechteck" id="form_rechteck" onclick="changeForm(this)">
+
+                    <label for="form_dreieck">Dreieck</label>
+                    <input type="checkbox" class="form" value="1" choice="dreieck" id="form_dreieck" onclick="changeForm(this)">
+
+                    <label for="form_kreis">Kreis</label>
+                    <input type="checkbox" class="form" value="2" choice="kreis" id="form_kreis" onclick="changeForm(this)">
+                </div>
+
+                <!-- Zu suchende Größe auswählen -->
+                <label for="groesse">Größe auswählen:</label>
+                <div class="radioGroup" id="groesse">
+                    <label for="größe_flächeninhalt">Flächeninhalt</label>
+                    <input type="checkbox" class="groesse" value="0" choice="flächeninhalt" id="größe_flächeninhalt" onclick="changeGroesse(this)">
+
+                    <label for="größe_umfang">Umfang</label>
+                    <input type="checkbox" class="groesse" value="1" choice="umfang" id="größe_umfang" onclick="changeGroesse(this)">
+                </div>
+
+            </div>
+
+            <div style="flex-direction: column;">
+                <!-- Bild -->
+                <div>
+                    <div form="rechteck">
+                        <img src="{% static 'img/formen_rechteck.png' %}" alt="BILD" style="height: 150px; width: 150px;">
+                    </div>
+                    <div form="dreieck">
+                        <img src="{% static 'img/formen_dreieck.png' %}" alt="BILD" style="height: 150px; width: 150px;">
+                    </div>
+                    <div form="kreis">
+                        <img src="{% static 'img/formen_kreis.png' %}" alt="BILD" style="height: 150px; width: 150px;">
+                    </div>
+                </div>
+
+                <!-- Formel -->
+                <div>
+                    <div form="rechteck">
+                        <div groesse="flächeninhalt">
+                            A = a * b
+                        </div>
+                        <div groesse="umfang">
+                            u = 2a + 2b
+                        </div>
+                    </div>
+
+                    <div form="dreieck">
+                        <div groesse="flächeninhalt">
+                            A = g * h / 2
+                        </div>
+                        <div groesse="umfang">
+                            u = a + b + c
+                        </div>
+                    </div>
+
+                    <div form="kreis">
+                        <div groesse="flächeninhalt">
+                            A = π * r²
+                        </div>
+                        <div groesse="umfang">
+                            u = 2 * π * r
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="content">
+            <hr>
+            <!-- Inhalt -->
+            <div class="container">
+                <label for="values">Werte eingeben:</label>
+                <!-- Werte -->
+                <div id="values">
+                    <div form="rechteck">
+                        <div groesse="flächeninhalt">
+                            <label>Seite a</label>
+                            <input name="a" value="0">
+
+                            <label>Seite b</label>
+                            <input name="b" value="0">
+                        </div>
+
+                        <div groesse="umfang">
+                            <label>Seite a</label>
+                            <input name="a" value="0">
+
+                            <label>Seite b</label>
+                            <input name="b" value="0">
+                        </div>
+                    </div>
+
+                    <div form="kreis">
+                        <div groesse="flächeninhalt">
+                            <label>Radius r</label>
+                            <input name="r" value="0">
+                        </div>
+
+                        <div groesse="umfang">
+                            <label>Radius r</label>
+                            <input name="r" value="0">
+                        </div>
+                    </div>
+
+                    <div form="dreieck">
+                        <div groesse="flächeninhalt">
+                            <label>Seite g</label>
+                            <input name="g" value="0">
+
+                            <label>Höhe h</label>
+                            <input name="h" value="0">
+                        </div>
+
+                        <div groesse="umfang">
+                            <label>Seite a</label>
+                            <input name="a" value="0">
+
+                            <label>Seite b</label>
+                            <input name="b" value="0">
+
+                            <label>Seite c</label>
+                            <input name="c" value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="default" onclick="calculate()" style="margin-top: 10px;">Berechnen</button>
+            </div>
+
+            <label for="result">Ergebnis:</label>
+            <div>
+                <input id="result" disabled>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+
+<!-- Radio Groups -->
+<script>
+
+    let result = document.getElementById('result');
+    let content = document.getElementById('content');
+    content.classList.add('hidden');
+    let formRadioGroup = document.querySelector('.radioGroup#form');
+    let groesseRadioGroup = document.querySelector('.radioGroup#groesse');
+
+    const radioGroups = document.querySelectorAll('.radioGroup');
+    let forms;
+
+    document.addEventListener('DOMContentLoaded',  function() {
+
+        radioGroups.forEach((radioGroup) => {
+            setupRadioGroup(radioGroup);
+        });
+    });
+
+
+    function setupRadioGroup(radioGroup) {
+
+        radioGroup.setAttribute('chosen', "");
+
+        let radioButtons = radioGroup.querySelectorAll('input');
+
+        radioButtons.forEach((radioButton) => {
+            radioButton.addEventListener('change', (e) => radioButtonChange(e, radioGroup));
+        });
+    }
+
+    function radioButtonChange(event, radioGroup) {
+
+        let target = event.target;
+        let radioButtons = radioGroup.querySelectorAll('input');
+
+        radioGroup.setAttribute('chosen', "");
+        result.value = "";
+
+        radioButtons.forEach((radioButton) => {
+            if (target == radioButton) {
+                if (target.checked == true) {
+                    radioGroup.setAttribute('chosen', radioButton.getAttribute('choice'));
+                }
+                return;
+            }
+            radioButton.checked = false;
+        });
+
+        if (formRadioGroup.getAttribute('chosen') != "" && groesseRadioGroup.getAttribute('chosen') != "") {
+            content.classList.remove('hidden');
+        }
+        else {
+            content.classList.add('hidden');
+        }
+    }
+</script>
+
+<!-- Felder anzeigen/verstecken je nach Eingabe -->
+<script>
+    let form_toggle_divs = document.querySelectorAll('[form]');
+    hideElements(form_toggle_divs);
+
+    function changeForm(input) {
+        hideElements(form_toggle_divs);
+
+        if (input.checked == false) {
+            return;
+        }
+
+        let form = input.getAttribute('choice');
+        let selected_form_toggle_divs = document.querySelectorAll('[form="' + form + '"]');
+
+        showElements(selected_form_toggle_divs);
+    }
+
+
+    let groesse_toggle_divs = document.querySelectorAll('[groesse]');
+    hideElements(groesse_toggle_divs);
+
+    function changeGroesse(input) {
+
+        hideElements(groesse_toggle_divs);
+
+        if (input.checked == false) {
+            return;
+        }
+
+        let groesse = input.getAttribute('choice');
+        let selected_groesse_toggle_divs = document.querySelectorAll('[groesse="' + groesse + '"]');
+
+        showElements(selected_groesse_toggle_divs);
+    }
+
+    function showElements(array) {
+        array.forEach((div) => {
+            div.classList.remove('hidden');
+        });
+    }
+
+    function hideElements(array) {
+        array.forEach((div) => {
+            div.classList.add('hidden');
+        });
+    }
+</script>
+
+<!-- Berechnung -->
+<script>
+
+    let values_div = document.getElementById('values');
+
+    function calculate() {
+
+        let selected_form = formRadioGroup.getAttribute('chosen');
+        let selected_groesse = groesseRadioGroup.getAttribute('chosen');
+
+        if (selected_form == "") {
+            console.error("KEINE FORM AUSGEWÄHLT.");
+            fireError("KEINE FORM AUSGEWÄHLT.");
+            return;
+        }
+
+        if (selected_groesse == "") {
+            console.error("KEINE GRÖßE AUSGEWÄHLT.");
+            fireError("KEINE GRÖßE AUSGEWÄHLT.");
+            return;
+        }
+
+        let values_input_fields_div = values_div.querySelector('[form="' + selected_form + '"]').querySelector('[groesse="' + selected_groesse + '"]');
+        let values_input_fields = values_input_fields_div.querySelectorAll('input');
+        let validation = validate_input_fields(values_input_fields);
+
+        if (validation == true) {
+            result.value = get_result(selected_form, selected_groesse, values_input_fields_div);
+        }
+        else {
+            console.error("IN DER EINGABE LIEGEN FEHLER VOR.");
+            fireError("IN DER EINGABE LIEGEN FEHLER VOR.");
+        }
+    }
+
+    function get_result(selected_form, selected_groesse, values_input_fields_div) {
+
+        if (selected_form == 'rechteck') {
+
+            if (selected_groesse == 'umfang') {
+                let a = values_input_fields_div.querySelector('[name="a"]').value;
+                let b = values_input_fields_div.querySelector('[name="b"]').value;
+
+                return 2 * (Number(a) + Number(b));
+            }
+            else if (selected_groesse == 'flächeninhalt') {
+                let a = values_input_fields_div.querySelector('[name="a"]').value;
+                let b = values_input_fields_div.querySelector('[name="b"]').value;
+
+                return Number(a) * Number(b);
+            }
+        }
+
+        else if (selected_form == 'dreieck') {
+
+            if (selected_groesse == 'umfang') {
+                let a = values_input_fields_div.querySelector('[name="a"]').value;
+                let b = values_input_fields_div.querySelector('[name="b"]').value;
+                let c = values_input_fields_div.querySelector('[name="c"]').value;
+
+                if (isTriangle(Number(a), Number(b), Number(c)) == false) {
+                    fireError("Es gibt kein Dreieck mit den eingegebenen Größen.");
+                    return "";
+                }
+
+                return Number(a) + Number(b) + Number(c);
+            }
+            else if (selected_groesse == 'flächeninhalt') {
+                let g = values_input_fields_div.querySelector('[name="g"]').value;
+                let h = values_input_fields_div.querySelector('[name="h"]').value;
+
+                return Number(g) * Number(h) * 0.5;
+            }
+        }
+
+        else if (selected_form == 'kreis') {
+
+            if (selected_groesse == 'umfang') {
+                let r = values_input_fields_div.querySelector('[name="r"]').value;
+
+                return 2 * Math.PI * Number(r);
+            }
+            else if (selected_groesse == 'flächeninhalt') {
+                let r = values_input_fields_div.querySelector('[name="r"]').value;
+
+                return Math.PI * Math.pow(Number(r), 2);
+            }
+        }
+    }
+
+    function validate_input_fields(array) {
+
+        let errors = 0;
+
+        array.forEach((input) => {
+
+            let number = input.value;
+
+            if (isNumeric(number) && Number(number) >= 0) {
+
+            }
+            else {
+                console.error(`${input.name} IST KEINE GÜLTIGE ZAHL.`);
+                errors++;
+            }
+        });
+
+        if (errors > 0) {
+            return false;
+        }
+        return true;
+    }
+
+    function isNumeric(str) {
+        const pattern = /^-?\d+(\,\d+)?$/;
+        return pattern.test(str);
+    }
+
+    function isTriangle(a, b, c) {
+        if ((a + b > c) && (a + c > b) && (b + c > a)) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+</script>
+
+<script>
+    function fireError(message) {
+        swal({
+            title: "Fehler!",
+            text: message,
+            icon: "error"
+        });
+    }
+</script>
+
+<style>
+    .hidden {
+        display: none;
+    }
+
+    .radioGroup {
+        width: fit-content;
+        background-color: rgba(0,0,0,0.2);
+        padding: 5px;
+        margin: 5px 5px 25px 0px;
+        border-radius: 5px;
+    }
+
+    .radioGroup input {
+        margin-right: 20px;
+    }
+
+    .radioGroup input:last-of-type {
+        margin-right: 0px;
+    }
+
+    .container {
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+    }
+
+</style>
+
+</html>
